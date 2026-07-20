@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from django.http.response import JsonResponse
 from rest_framework import generics,status,viewsets
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny,IsAuthenticated
@@ -57,3 +58,8 @@ class CartViewSet(viewsets.ModelViewSet):
     # إجبار السيرفر على حفظ request.user في حقل user في قاعدة البيانات
         serializer.save(user=self.request.user)
         
+def ping(request):
+    x={
+        'ping':'ping'
+    }
+    return JsonResponse(x)

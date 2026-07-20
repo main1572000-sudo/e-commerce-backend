@@ -18,4 +18,5 @@ urlpatterns = [
     path('electrics/',views.electrics_view.as_view(),name = 'only_electrics'),# اظهار جميع المنتجات الكهربائية للجميع
     path('kitchen/',views.kitchen_view.as_view(),name = 'only_kitchen'),# اظهار جميع المنتجات (المطبخ )للجميع
     path('cart/',include(router.urls)), # السلة 
+    path('ping/',views.ping,name='ping')
 ]
