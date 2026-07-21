@@ -20,6 +20,8 @@ class ProductSerializer(serializers.ModelSerializer):
         model= Product
         fields = '__all__'
 #...................................................
+# serializers.py
+
 class CartSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
@@ -29,21 +31,28 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'product_name', 'product_price', 'quantity']
         
     def create(self, validated_data):
-        # التقاط المستخدم الحالي من سياق الطلب (Context)
         user = self.context['request'].user
         product = validated_data['product']
         quantity = validated_data.get('quantity', 1)
 
-        # تطبيق منطق get_or_create لمنع التكرار
+        # 1. التحقق أولاً من أن المنتج متوفر في المخزن بالكمية المطلوبة
+        if product.qty < quantity:
+            raise serializers.ValidationError({"error": "عذراً، هذا المنتج نفد من المخزن أو الكمية المطلوبة غير متوفرة!"})
+
+        # 2. تطبيق منطق get_or_create لمنع التكرار في السلة
         cart_item, created = Cart.objects.get_or_create(
             user=user,
             product=product,
             defaults={'quantity': quantity}
         )
 
-        # إذا كان المنتج موجوداً مسبقاً، نزيد الكمية بالقدر المرسل
+        # إذا كان المنتج موجوداً مسبقاً في السلة، نزيد كمية السلة
         if not created:
             cart_item.quantity += quantity
             cart_item.save()
+
+        # 3. 🔥 [السطور السحرية المفقودة] الخصم الفعلي من مخزن المنتج وحفظه في قاعدة البيانات!
+        product.qty -= quantity
+        product.save()
 
         return cart_item

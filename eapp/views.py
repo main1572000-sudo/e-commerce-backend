@@ -1,13 +1,14 @@
 from rest_framework.response import Response
 from django.http.response import JsonResponse
 from rest_framework import generics,status,viewsets
-from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny,IsAuthenticated
-from .serializers import ProductSerializer,CartSerializer,UserSerializer
+from .serializers import ProductSerializer,CartSerializer
 from .models import Cart,User,Product
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.permissions import AllowAny
+from rest_framework.decorators import action
+from django.db.models import F
 # Create your views here.
 class RegisterView(APIView):
     permission_classes = [AllowAny] # للسماح للجميع بإنشاء حساب بدون توكن
@@ -30,6 +31,7 @@ class Product_view(generics.ListAPIView):
     queryset= Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
+
     
 category=Product.category
 class clothes_view(generics.ListAPIView):
@@ -47,17 +49,30 @@ class kitchen_view(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
 
+# views.py
+
 class CartViewSet(viewsets.ModelViewSet):
-    # فرض تسجيل الدخول أولاً لضمان وجود مستخدم
     permission_classes = [IsAuthenticated] 
     serializer_class = CartSerializer
+    
     def get_queryset(self):
-        # السيرفر يجلب فقط البيانات التي تخص هذا المستخدم تحديداً
         return Cart.objects.filter(user=self.request.user)
+        
     def perform_create(self, serializer):
-    # إجبار السيرفر على حفظ request.user في حقل user في قاعدة البيانات
         serializer.save(user=self.request.user)
         
+    # 💡 قمنا بحذف دالة add_to_cart القديمة لأن السيرياليزر في الأعلى صار يتولى المهمة بالكامل بنجاح وبشكل تلقائي!
+    def destroy(self, request, *args, **kwargs):
+        # 1. جلب عنصر السلة المراد حذفه قبل مسحه من قاعدة البيانات
+        cart_item = self.get_object()
+        product = cart_item.product
+        
+        # 2. إعادة الكمية المحجوزة في السلة إلى مخزن المنتج العام
+        product.qty += cart_item.quantity
+        product.save()
+        
+        # 3. إكمال عملية الحذف الافتراضية من السلة
+        return super().destroy(request, *args, **kwargs)
 def ping(request):
     x={
         'ping':'ping'
