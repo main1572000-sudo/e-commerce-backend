@@ -31,8 +31,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
-
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 # Application definition
 
 INSTALLED_APPS = [
@@ -172,10 +171,8 @@ MEDIA_ROOT= BASE_DIR/'media'
 #     "http://localhost:5173",   # هذا رابط الفرونت إند المحلي (React)
 #     "http://127.0.0.1:5173",   # وهذا البديل الرقمي له
 # ]
-CORS_ALLOWED_ORIGINS = [
-    "https://megafront.onrender.com",  # رابط تطبيق React على Render
-    "http://localhost:5173",                   # للتطوير المحلي
-]
+
+CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 # إعدادات Cloudinary
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
