@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 import environ
 import dj_database_url
@@ -31,8 +31,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 # Application definition
 
@@ -46,17 +45,26 @@ INSTALLED_APPS = [
     'eapp',
     'rest_framework',
     'rest_framework_simplejwt',
+
     'corsheaders',
     'cloudinary_storage',
     'cloudinary',
 ]
+from datetime import timedelta
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # ينتهي بعد 15 دقيقة
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # ينتهي بعد 7 أيام
+    'ROTATE_REFRESH_TOKENS': True,                  # يجدد الـ Refresh Token أيضاً عند الاستخدام
+    'BLACKLIST_AFTER_ROTATION': True,
+}   
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
 
 STORAGES = {
     "default": {
@@ -68,9 +76,13 @@ STORAGES = {
     },
 }
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'webmaster@localhost'
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -148,17 +160,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 AUTH_USER_MODEL = 'eapp.User'
 #ليسمح للفرونت باستخدام التوكنز - يجب تحديد الفرونت عند رفع الموقع
 CORS_ALLOW_CREDENTIALS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT= BASE_DIR/'media'
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",   # هذا رابط الفرونت إند المحلي (React)
+#     "http://127.0.0.1:5173",   # وهذا البديل الرقمي له
+# ]
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",   # هذا رابط الفرونت إند المحلي (React)
-    "http://127.0.0.1:5173",   # وهذا البديل الرقمي له
+    "https://megafront.onrender.com",  # رابط تطبيق React على Render
+    "http://localhost:5173",                   # للتطوير المحلي
 ]
-
 # إعدادات Cloudinary
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
