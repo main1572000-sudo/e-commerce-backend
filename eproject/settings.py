@@ -75,8 +75,12 @@ STORAGES = {
     },
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'webmaster@localhost'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'eslamthetiger928@gmail.com'
+EMAIL_HOST_PASSWORD = 'rijwojzpthcf gkwh' # كلمة مرور التطبيقات من جوجل
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
